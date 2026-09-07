@@ -94,20 +94,67 @@ de la prueba. Una vez vencido ese plazo, no se recibirán nuevas entregas.
 
 ## Anotaciones del postulante
 
-Completa este espacio antes de entregar tu solución.
-
 ### Instrucciones de ejecución
 
-Indica los comandos necesarios para instalar las dependencias, configurar la base
-de datos, ejecutar el backend, ejecutar la interfaz y correr las pruebas. La
-solución debe poder levantarse siguiendo únicamente estas instrucciones.
+**Backend (Django + DRF):**
+
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate          # Windows PowerShell: venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
+
+La API queda en `http://127.0.0.1:8000/api/` (`categorias/` y `productos/`).
+
+**Frontend (Next.js), en otra terminal:**
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Abrir `http://localhost:3000`. Si en tu entorno `localhost` no responde (pasó en
+el mío por una interfaz de red particular), Next.js también imprime una URL de
+red alternativa en la consola al arrancar; esa sirve igual.
+
+**Pruebas automatizadas:**
+
+```bash
+cd backend
+python manage.py test
+```
 
 ### Decisiones y observaciones
 
-Describe brevemente cualquier decisión técnica relevante, supuesto, limitación o
-mejora pendiente.
+- Modelos y campos en español (`Categoria`, `Producto`, `nombre`, `precio`,
+  `stock`, `categoria`, `fecha_creacion`), siguiendo el vocabulario que ya usa
+  el propio enunciado.
+- `on_delete=PROTECT` en `Producto.categoria`: evita borrar una categoría que
+  todavía tiene productos asociados, en vez de fallar en cascada o en silencio.
+- Filtro y búsqueda como query params sobre el mismo endpoint de listado
+  (`GET /api/productos/?categoria=<id>&buscar=<texto>`), en vez de endpoints
+  separados — es lo mismo que pide el enunciado con menos superficie de API.
+- `categoria_nombre` expuesto como campo de solo lectura en el serializer de
+  `Producto`, para que el frontend no tenga que pedir la categoría aparte solo
+  para mostrar su nombre.
+- CORS abierto (`CORS_ALLOW_ALL_ORIGINS = True`): es un entorno de prueba local
+  sin autenticación, no producción.
+- El frontend quedó en un solo componente (`app/page.tsx`) dado el alcance
+  acotado de la prueba; en un proyecto real separaría formulario, listado y
+  filtros en componentes propios.
+- La interfaz cubre listar, crear, filtrar y buscar (lo mínimo que pide el
+  enunciado). Editar y eliminar sí están en la API pero no en la interfaz.
 
 ### Herramientas de IA utilizadas
 
-Si utilizaste herramientas de IA, indica cuáles y para qué. Si no utilizaste
-ninguna, indícalo también.
+Uso IA (Claude, con subagentes) como parte de mi flujo de trabajo diario. En
+esta prueba lo usé de la misma forma: me generó el código base de modelos,
+serializers, vistas y la interfaz siguiendo las reglas del enunciado, y yo fui
+pegando, ejecutando y verificando cada paso — corriendo migraciones, los
+tests, y depurando un problema real de mi entorno (el dev server de Next.js
+bloqueando recursos por acceder desde una IP de red en vez de `localhost`)
+hasta entender la causa y resolverlo en `next.config.ts`.
